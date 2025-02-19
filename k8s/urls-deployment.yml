@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urls-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: urls-service
+  template:
+    metadata:
+      labels:
+        app: urls-service
+    spec:
+      imagePullSecrets:
+        - name: docker-secrets
+      containers:
+        - name: urls-service
+          image: cooperw22/urls-service:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: urls-config
+          env:
+            - name: REDIS_URI
+              valueFrom:
+                # read it from redis-secrets
+                secretKeyRef:
+                  name: redis-secrets
+                  key: REDIS_URI
+            # add mongo uri
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secrets
+                  key: MONGO_URI
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: urls-service
+spec:
+  selector:
+    app: urls-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "urls-service"
+version = "0.1.0"
+description = ""
+authors = ["Cooper Weiser"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.8"
+pydantic = "^2.10.6"
+pydantic-settings = "^2.7.1"
+motor = "^3.7.0"
+uvicorn = "^0.34.0"
+redis = "^5.2.1"
+
+
+[tool.poetry.group.dev.dependencies]
+setuptools = "^75.8.0"
+uvicorn = "^0.34.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

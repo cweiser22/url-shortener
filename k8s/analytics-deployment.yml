@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: analytics-service
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+    spec:
+      imagePullSecrets:
+        - name: docker-secrets
+      containers:
+        - name: analytics-service
+          image: cooperw22/analytics-service:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: analytics-config
+          env:
+            - name: INFLUX_URL
+              valueFrom:
+                secretKeyRef:
+                  name: influx-secrets
+                  key: INFLUX_URL
+            # same thing for org and token,
+            - name: INFLUX_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: influx-secrets
+                  key: INFLUX_ORG
+            - name: INFLUX_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: influx-secrets
+                  key: INFLUX_TOKEN
+            - name: INFLUX_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: influx-secrets
+                  key: INFLUX_BUCKET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+spec:
+  selector:
+    app: analytics-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
