@@ -1,3 +1,8 @@
-.env.*
+.env
 **/.env
-**/.env.*
+**/.env.local
+__pycache__/
+.env.redis
+.env.influx
+.env.mongo
+.env.dockerhub
