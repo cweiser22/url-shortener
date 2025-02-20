@@ -5,20 +5,8 @@ from influxdb_client import InfluxDBClient, Point
 from datetime import datetime, timezone
 from pydantic_settings import BaseSettings
 from influxdb_client.client.write_api import SYNCHRONOUS
+from app.settings import settings
 
-
-# Define all settings with Pydantic
-class Settings(BaseSettings):
-    influx_url: str
-    influx_token: str
-    influx_org: str
-    influx_bucket: str
-
-    class Config:
-        env_file = ".env"
-
-
-settings = Settings()
 
 # Initialize InfluxDB client
 client = InfluxDBClient(url=settings.influx_url, token=settings.influx_token, org=settings.influx_org)

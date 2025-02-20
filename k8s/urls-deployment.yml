@@ -35,6 +35,10 @@ spec:
                 secretKeyRef:
                   name: mongo-secrets
                   key: MONGO_URI
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
 
 ---
 apiVersion: v1
