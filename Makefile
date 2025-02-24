@@ -58,3 +58,6 @@ docker-hub-push:
 	sudo docker build --platform=linux/amd64 -t cooperw22/analytics-service:latest ./analytics_service
 	docker push cooperw22/urls-service:latest
 	docker push cooperw22/analytics-service:latest
+
+postgres-init:
+	# use docker run to run init.sql on postgres container

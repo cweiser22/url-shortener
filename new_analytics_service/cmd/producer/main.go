@@ -27,18 +27,23 @@ func NewProducer(brokers []string) (sarama.SyncProducer, error) {
 func main() {
 	router := http.NewServeMux()
 
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"kafka:9092"}
 	producer, err := NewProducer(brokers)
+
+	if err != nil {
+		log.Fatal("Failed to connect to Kafka.")
+		return
+	}
 
 	app := app2.ProducerApp{
 		KafkaProducer: producer,
 	}
 
-	router.HandleFunc("/", app.HealthCheckHandler)
-	router.HandleFunc("/{shortCode}", handlers.UrlVisitHandler)
-	err := http.ListenAndServe(":8002", router)
-	if err != nil {
-		log.Fatal("HTTP producer failed.")
-		return
+	ah := handlers.AnalyticsHandler{
+		Producer: app.KafkaProducer,
 	}
+
+	router.HandleFunc("/", ah.HealthCheckHandler)
+	router.HandleFunc("/{shortCode}", ah.UrlVisitHandler)
+	log.Fatal(http.ListenAndServe(":8002", router))
 }
