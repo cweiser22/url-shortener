@@ -2,15 +2,20 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/IBM/sarama"
 	"log"
+	"new_analytics_service/internal/repository"
+	"new_analytics_service/internal/service"
 	"os"
 	"os/signal"
 )
 
 // consumerGroupHandler implements sarama.ConsumerGroupHandler
-type consumerGroupHandler struct{}
+type consumerGroupHandler struct {
+	service service.AnalyticsService
+}
 
 // Setup is run at the beginning of a new session, before ConsumeClaim
 func (consumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
@@ -33,6 +38,13 @@ func (h consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, 
 			message.Partition,
 			message.Offset,
 		)
+
+		shortCode := string(message.Value)
+		err := h.service.RecordUrlVisit(shortCode)
+		if err != nil {
+			log.Printf("Failed to record visit for %s\n", shortCode)
+		}
+
 		// Mark the message as processed
 		session.MarkMessage(message, "")
 	}
@@ -71,8 +83,14 @@ func main() {
 		cancel()
 	}()
 
+	DB, err := sql.Open("postgres", "postgres://postgres:5432")
+
+	repo := repository.NewPostgresAnalyticsRepository(DB)
+
 	// Consume messages in a loop
-	handler := consumerGroupHandler{}
+	handler := consumerGroupHandler{
+		service: service.NewAnalyticsService(repo),
+	}
 	for {
 		err := consumerGroup.Consume(ctx, topics, handler)
 		if err != nil {

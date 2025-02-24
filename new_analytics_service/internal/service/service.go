@@ -9,6 +9,12 @@ type AnalyticsService struct {
 	repo repository.AnalyticsRepository
 }
 
+func NewAnalyticsService(repo repository.AnalyticsRepository) AnalyticsService {
+	return AnalyticsService{
+		repo: repo,
+	}
+}
+
 func (s *AnalyticsService) RecordUrlVisit(shortCode string) error {
 	visit := models.UrlVisit{
 		ShortCode: shortCode,
