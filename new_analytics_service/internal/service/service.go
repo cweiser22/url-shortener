@@ -1,15 +1,23 @@
 package service
 
-type Service interface {
-	repo *repository.Repository
-	RecordUrlVisit(shortCode string) error
-	GetUrlStats(shortCode string)
+import (
+	"new_analytics_service/internal/models"
+	"new_analytics_service/internal/repository"
+)
+
+type AnalyticsService struct {
+	repo repository.AnalyticsRepository
 }
 
-func (s *Service) RecordUrlVisit(shortCode string) error{
+func (s *AnalyticsService) RecordUrlVisit(shortCode string) error {
 	visit := models.UrlVisit{
-		shortCode: shortCode,
+		ShortCode: shortCode,
 	}
-	err := repo.SaveUrlVisit(visit)
+	err := s.repo.SaveUrlVisit(visit)
+
 	return err
+}
+
+func (s *AnalyticsService) GetUrlStats(shortCode string) (models.UrlStats, error) {
+	return s.repo.GetUrlStats(shortCode)
 }
