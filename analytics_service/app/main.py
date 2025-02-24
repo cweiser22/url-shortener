@@ -1,5 +1,4 @@
 from time import timezone
-
 from fastapi import FastAPI
 from influxdb_client import InfluxDBClient, Point
 from datetime import datetime, timezone
@@ -26,8 +25,6 @@ async def track_url_visit(code: str):
     - Logging an individual visit (`url_visits`)
     - Updating the last visit timestamp (`last_visit`)
     """
-
-    print(f"Tracking visit for code: {code}")
 
     now = datetime.now(timezone.utc)
 

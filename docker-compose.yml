@@ -78,6 +78,17 @@ services:
       - "8001:80"
 
 
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - url-dev-network
+
+
 volumes:
   mongodb-data:
   influxdb2-data:
