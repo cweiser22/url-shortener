@@ -40,8 +40,7 @@ func main() {
 	producer, err := NewProducer(brokers)
 
 	if err != nil {
-		log.Fatal("Failed to connect to Kafka.")
-		return
+		log.Fatal("Failed to connect to Kafka with URL %s, %s", brokerList, err)
 	}
 
 	app := app2.ProducerApp{

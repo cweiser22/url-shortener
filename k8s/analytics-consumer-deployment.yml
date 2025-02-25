@@ -12,6 +12,8 @@ spec:
       labels:
         app: analytics-consumer
     spec:
+      nodeSelector:
+        service: "true"
       imagePullSecrets:
         - name: docker-secrets
       containers:

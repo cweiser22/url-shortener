@@ -12,6 +12,8 @@ spec:
       labels:
         app: analytics-producer
     spec:
+      nodeSelector:
+        service: "true"
       imagePullSecrets:
         - name: docker-secrets
       containers:
