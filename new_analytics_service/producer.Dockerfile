@@ -18,7 +18,7 @@ RUN go mod download
 # Copy the entire project
 COPY . .
 
-RUN go install github.com/air-verse/air@latest
+#RUN go install github.com/air-verse/air@latest
 
 # Build the Go application
 RUN go build -o main ./cmd/producer/main.go

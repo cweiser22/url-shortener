@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/IBM/sarama"
+
 	"log"
 	"net/http"
 	app2 "new_analytics_service/internal/app"

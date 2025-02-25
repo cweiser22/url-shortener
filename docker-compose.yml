@@ -36,7 +36,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./nginx_dev/nginx_dev.conf:/etc/nginx_dev/nginx_dev.conf:ro  # Mount custom NGINX config
+      - ./nginx_dev/nginx.conf:/etc/nginx_dev/nginx.conf:ro  # Mount custom NGINX config
     depends_on:
       - urls-service
     networks:
@@ -102,6 +102,7 @@ services:
     environment:
       - POSTGRES_PASSWORD=admin101
       - POSTGRES_USER=admin
+      - POSTGRES_DB=analytics_db
 
   zookeeper:
     image: 'bitnami/zookeeper:latest'

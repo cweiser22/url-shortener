@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/IBM/sarama"
+	_ "github.com/lib/pq"
 	"log"
 	"new_analytics_service/internal/repository"
 	"new_analytics_service/internal/service"
@@ -43,6 +44,7 @@ func (h consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, 
 		err := h.service.RecordUrlVisit(shortCode)
 		if err != nil {
 			log.Printf("Failed to record visit for %s\n", shortCode)
+			log.Println(err)
 		}
 
 		// Mark the message as processed
@@ -83,9 +85,12 @@ func main() {
 		cancel()
 	}()
 
-	DB, err := sql.Open("postgres", "postgres://postgres:5432")
+	DB, err := sql.Open("postgres", "postgres://admin:admin101@postgres:5432/analytics_db?sslmode=disable")
+	if err != nil {
+		log.Fatal("Could not connect to DB", err)
+	}
 
-	repo := repository.NewPostgresAnalyticsRepository(DB)
+	repo := repository.NewAnalyticsRepository(DB)
 
 	// Consume messages in a loop
 	handler := consumerGroupHandler{
