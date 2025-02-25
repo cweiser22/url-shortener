@@ -42,45 +42,13 @@ services:
     networks:
       - url-dev-network
 
-  influxdb2:
-    image: influxdb:2
-    volumes:
-      - type: volume
-        source: influxdb2-data
-        target: /var/lib/influxdb2
-      - type: volume
-        source: influxdb2-config
-        target: /etc/influxdb2
-    environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: admin101
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: token
-      DOCKER_INFLUXDB_INIT_ORG: docs
-      DOCKER_INFLUXDB_INIT_BUCKET: home
-    networks:
-      - url-dev-network
-
-  #analytics-service:
-  #  build: ./analytics_service
-  #  volumes:
-  #    - ./analytics_service:/app
-  #  depends_on:
-  #    - influxdb2
-  #  command: ['uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '80', '--reload']
-  #  networks:
-  #    - url-dev-network
-  #  env_file:
-  #    - analytics_service/.env.local
-  #  ports:
-  #    - "8001:80"
-
   analytics-service-producer:
     build:
       dockerfile: producer.Dockerfile
       context: ./new_analytics_service
     depends_on:
       - kafka
+      - postgres
     ports:
       - "8002:8002"
     networks:
@@ -143,8 +111,6 @@ services:
 
 volumes:
   mongodb-data:
-  influxdb2-data:
-  influxdb2-config:
   postgres-data:
 
 

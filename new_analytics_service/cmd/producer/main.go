@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/IBM/sarama"
-
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	app2 "new_analytics_service/internal/app"
 	"new_analytics_service/internal/handlers"
+	"new_analytics_service/internal/repository"
+	"new_analytics_service/internal/service"
 )
 
 // NewProducer initializes a new Kafka producer
@@ -40,11 +43,20 @@ func main() {
 		KafkaProducer: producer,
 	}
 
+	DB, err := sql.Open("postgres", "postgres://admin:admin101@postgres:5432/analytics_db?sslmode=disable")
+	if err != nil {
+		log.Fatal("Could not connect to DB", err)
+	}
+
+	repo := repository.NewAnalyticsRepository(DB)
+
 	ah := handlers.AnalyticsHandler{
-		Producer: app.KafkaProducer,
+		Producer:         app.KafkaProducer,
+		AnalyticsService: service.NewAnalyticsService(repo),
 	}
 
 	router.HandleFunc("/", ah.HealthCheckHandler)
 	router.HandleFunc("/{shortCode}", ah.UrlVisitHandler)
+	router.HandleFunc("/api/analytics/{shortCode}/stats", ah.UrlStatsHandler)
 	log.Fatal(http.ListenAndServe(":8002", router))
 }

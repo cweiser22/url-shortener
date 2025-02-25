@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"new_analytics_service/internal/models"
+	"new_analytics_service/internal/service"
 )
 
 type AnalyticsHandler struct {
 	Producer sarama.SyncProducer
+	AnalyticsService service.AnalyticsService
 }
 
 func (h *AnalyticsHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,4 +40,16 @@ func (h *AnalyticsHandler) UrlVisitHandler(w http.ResponseWriter, r *http.Reques
 		}
 		log.Println("Sent message:", shortCode)
 	}()
+}
+
+// make a get url stats endpoint that gets the stats for the url passed as the shortCode
+func (h *AnalyticsHandler) UrlStatsHandler(w http.ResponseWriter, r *http.Request) {
+	shortCode := r.PathValue("shortCode")
+	stats, err := h.AnalyticsService.GetUrlStats(shortCode)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(stats)
 }
