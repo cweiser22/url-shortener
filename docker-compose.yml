@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:6.0
@@ -38,50 +36,82 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount custom NGINX config
+      - ./nginx_dev/nginx.conf:/etc/nginx_dev/nginx.conf:ro  # Mount custom NGINX config
     depends_on:
       - urls-service
     networks:
       - url-dev-network
 
-  influxdb2:
-    image: influxdb:2
+  analytics-service-producer:
+    build:
+      dockerfile: producer.Dockerfile
+      context: ./new_analytics_service
+    depends_on:
+      - kafka
+      - postgres
+    ports:
+      - "8002:8002"
+    networks:
+      - url-dev-network
     volumes:
-      - type: volume
-        source: influxdb2-data
-        target: /var/lib/influxdb2
-      - type: volume
-        source: influxdb2-config
-        target: /etc/influxdb2
+      - ./new_analytics_service:/app
+    #command: ['/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', '--build.bin', '/app' ]
+
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - url-dev-network
     environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: admin101
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: token
-      DOCKER_INFLUXDB_INIT_ORG: docs
-      DOCKER_INFLUXDB_INIT_BUCKET: home
+      - POSTGRES_PASSWORD=admin101
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=analytics_db
+
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - '2181:2181'
     networks:
       - url-dev-network
 
-  analytics-service:
-    build: ./analytics_service
-    volumes:
-      - ./analytics_service:/app
+  kafka:
+    image: 'bitnami/kafka:latest'
     depends_on:
-      - influxdb2
-    command: ['uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '80', '--reload']
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Set up a single internal listener only
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
     networks:
       - url-dev-network
-    env_file:
-      - analytics_service/.env.local
-    ports:
-      - "8001:80"
+
+  analytics-service-consumer:
+    build:
+      dockerfile: consumer.Dockerfile
+      context: ./new_analytics_service
+    depends_on:
+      - kafka
+      - postgres
+    networks:
+      - url-dev-network
 
 
 volumes:
   mongodb-data:
-  influxdb2-data:
-  influxdb2-config:
+  postgres-data:
 
 
 
