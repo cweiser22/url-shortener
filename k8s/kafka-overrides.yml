@@ -1,0 +1,24 @@
+replicaCount: 1
+controller:
+  replicaCount: 1
+  nodeSelector:
+    kafka: "true"
+zookeeper:
+  replicaCount: 1
+  resources:
+    request:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector:
+    kafka: "true"
+resources:
+  request:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+broker:
+  nodeSelector:
+    kafka: "true"
+

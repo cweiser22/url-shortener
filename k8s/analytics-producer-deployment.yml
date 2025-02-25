@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-producer
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: analytics-producer
+  template:
+    metadata:
+      labels:
+        app: analytics-producer
+    spec:
+      imagePullSecrets:
+        - name: docker-secrets
+      containers:
+        - name: analytics-producer
+          image: cooperw22/analytics-producer:latest
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: urls-config
+          env:
+            - name: KAFKA_BROKER_URLS
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-secrets
+                  key: KAFKA_BROKER_URLS
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-producer
+spec:
+  selector:
+    app: analytics-producer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

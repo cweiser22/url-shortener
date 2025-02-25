@@ -55,6 +55,8 @@ services:
       - url-dev-network
     volumes:
       - ./new_analytics_service:/app
+    env_file:
+      - new_analytics_service/.env.local
     #command: ['/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', '--build.bin', '/app' ]
 
 
@@ -107,6 +109,8 @@ services:
       - postgres
     networks:
       - url-dev-network
+    env_file:
+      - new_analytics_service/.env.local
 
 
 volumes:

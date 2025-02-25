@@ -6,3 +6,4 @@ __pycache__/
 .env.influx
 .env.mongo
 .env.dockerhub
+.env.kafka

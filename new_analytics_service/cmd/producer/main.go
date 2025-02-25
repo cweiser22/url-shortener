@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/IBM/sarama"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
@@ -10,6 +11,8 @@ import (
 	"new_analytics_service/internal/handlers"
 	"new_analytics_service/internal/repository"
 	"new_analytics_service/internal/service"
+	"os"
+	"strings"
 )
 
 // NewProducer initializes a new Kafka producer
@@ -29,9 +32,11 @@ func NewProducer(brokers []string) (sarama.SyncProducer, error) {
 }
 
 func main() {
+	godotenv.Load(".env.local")
 	router := http.NewServeMux()
 
-	brokers := []string{"kafka:9092"}
+	brokerList := os.Getenv("KAFKA_BROKER_URLS")
+	brokers := strings.Split(brokerList, ",")
 	producer, err := NewProducer(brokers)
 
 	if err != nil {

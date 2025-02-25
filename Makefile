@@ -30,6 +30,8 @@ k8s-deploy:
 	kubectl apply -f $(K8S_DEPLOYMENT_DIR)/urls-deployment.yml
 	kubectl apply -f $(K8S_DEPLOYMENT_DIR)/analytics-deployment.yml
 	kubectl apply -f $(K8S_DEPLOYMENT_DIR)/ingress.yml
+	helm install url-kafka bitnami/kafka --namespace kafka --create-namespace
+
 
 k8s-clean:
 	kubectl delete -f $(K8S_DEPLOYMENT_DIR)/urls-deployment.yml
@@ -43,6 +45,7 @@ k8s-configure:
 	kubectl create secret generic mongo-secrets --from-env-file=./.env.mongo
 	kubectl create secret generic redis-secrets --from-env-file=./.env.redis
 	kubectl create secret generic docker-secrets --from-env-file=./.env.dockerhub
+	kubectl create secret generic kafka-secrets --from-env-file=./.env.kafka
 
 
 k8s-clean-configure:
@@ -55,9 +58,13 @@ k8s-clean-configure:
 
 docker-hub-push:
 	sudo docker build --platform=linux/amd64 -t cooperw22/urls-service:latest ./urls_service
-	sudo docker build --platform=linux/amd64 -t cooperw22/analytics-service:latest ./analytics_service
+	sudo docker build --platform=linux/amd64 -t cooperw22/analytics-consumer:latest -f new_analytics_service/consumer.Dockerfile ./new_analytics_service
+	sudo docker build --platform=linux/amd64 -t cooperw22/analytics-producer:latest -f new_analytics_service/producer.Dockerfile ./new_analytics_service
 	docker push cooperw22/urls-service:latest
 	docker push cooperw22/analytics-service:latest
 
 postgres-init:
 	# use docker run to run init.sql on postgres container
+
+k8s-install-kafka:
+	helm install url-kafka bitnami/kafka --namespace kafka --create-namespace -f k8s/kafka-overrides.yml

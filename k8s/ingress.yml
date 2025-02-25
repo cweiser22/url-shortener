@@ -8,9 +8,9 @@ spec:
     fqdn: urls.ac
   routes:
     - conditions:
-        - prefix: "/analytics"
+        - prefix: "/api/analytics"
       services:
-        - name: analytics-service
+        - name: analytics-producer
           port: 80
     - conditions:
         - prefix: "/urls"
@@ -22,7 +22,7 @@ spec:
       services:
         - name: urls-service
           port: 80
-        - name: analytics-service
+        - name: analytics-producer
           port: 80
           mirror: true
 

@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/IBM/sarama"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
 	"new_analytics_service/internal/repository"
 	"new_analytics_service/internal/service"
 	"os"
 	"os/signal"
+	"strings"
 )
 
 // consumerGroupHandler implements sarama.ConsumerGroupHandler
@@ -54,6 +56,7 @@ func (h consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, 
 }
 
 func main() {
+	godotenv.Load(".env.local")
 	// Kafka configuration
 	config := sarama.NewConfig()
 	// Set a matching Kafka version if needed. For example:
@@ -61,7 +64,9 @@ func main() {
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
 
 	// Broker address and topic
-	brokers := []string{"kafka:9092"}
+	//brokers := []string{"kafka:9092"}
+	brokerList := os.Getenv("KAFKA_BROKER_URLS")
+	brokers := strings.Split(brokerList, ",")
 	groupID := "visit-consumer-group"
 	topics := []string{"visit"}
 
