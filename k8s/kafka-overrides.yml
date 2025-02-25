@@ -22,3 +22,12 @@ broker:
   nodeSelector:
     kafka: "true"
 
+listeners:
+  client:
+    protocol: PLAINTEXT
+
+advertisedListeners:
+  client: PLAINTEXT://url-kafka-controller-0.url-kafka-controller-headless.kafka.svc.cluster.local:9092
+
+externalAccess:
+  enabled: false
