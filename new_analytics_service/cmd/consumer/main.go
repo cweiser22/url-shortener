@@ -90,7 +90,9 @@ func main() {
 		cancel()
 	}()
 
-	DB, err := sql.Open("postgres", "postgres://admin:admin101@postgres:5432/analytics_db?sslmode=disable")
+	connString := os.Getenv("POSTGRES_URI")
+
+	DB, err := sql.Open("postgres", connString)
 	if err != nil {
 		log.Fatal("Could not connect to DB", err)
 	}
