@@ -48,6 +48,7 @@ func main() {
 	}
 
 	connString := os.Getenv("POSTGRES_URI")
+	log.Println(connString)
 	DB, err := sql.Open("postgres", connString)
 
 	if err != nil {
@@ -61,8 +62,9 @@ func main() {
 		AnalyticsService: service.NewAnalyticsService(repo),
 	}
 
-	router.HandleFunc("/", ah.HealthCheckHandler)
-	router.HandleFunc("/{shortCode}", ah.UrlVisitHandler)
-	router.HandleFunc("/api/analytics/{shortCode}/stats", ah.UrlStatsHandler)
+	router.HandleFunc("GET /{shortCode}/stats", ah.UrlStatsHandler)
+	router.HandleFunc("GET /{shortCode}", ah.UrlVisitHandler)
+	router.HandleFunc("GET /", ah.HealthCheckHandler)
+
 	log.Fatal(http.ListenAndServe(":8002", router))
 }

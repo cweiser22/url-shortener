@@ -30,6 +30,11 @@ spec:
                 secretKeyRef:
                   name: kafka-secrets
                   key: KAFKA_BROKER_URLS
+            - name: POSTGRES_URI
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_URI
 
 ---
 apiVersion: v1

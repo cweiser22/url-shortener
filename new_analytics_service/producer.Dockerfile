@@ -1,5 +1,5 @@
 # Use the official Golang image as a build stage
-FROM golang:1.23 AS builder
+FROM golang:1.23-alpine AS builder
 
 # Set environment variables for building
 ENV CGO_ENABLED=0 \
@@ -18,7 +18,6 @@ RUN go mod download
 # Copy the entire project
 COPY . .
 
-#RUN go install github.com/air-verse/air@latest
 
 # Build the Go application
 RUN go build -o main ./cmd/producer/main.go
@@ -29,6 +28,10 @@ FROM alpine:latest
 
 # Set the working directory
 WORKDIR /root/
+
+RUN apk add curl
+RUN curl -sSfL https://raw.githubusercontent.com/air-verse/air/master/install.sh | sh -s
+
 
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/main .

@@ -10,7 +10,7 @@ import (
 )
 
 type AnalyticsHandler struct {
-	Producer sarama.SyncProducer
+	Producer         sarama.SyncProducer
 	AnalyticsService service.AnalyticsService
 }
 
@@ -46,9 +46,8 @@ func (h *AnalyticsHandler) UrlVisitHandler(w http.ResponseWriter, r *http.Reques
 func (h *AnalyticsHandler) UrlStatsHandler(w http.ResponseWriter, r *http.Request) {
 	shortCode := r.PathValue("shortCode")
 	stats, err := h.AnalyticsService.GetUrlStats(shortCode)
-
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(stats)

@@ -56,7 +56,10 @@ func (h consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, 
 }
 
 func main() {
-	godotenv.Load(".env.local")
+	err := godotenv.Load(".env.local")
+	if err != nil {
+		log.Println("Skipping local .env...")
+	}
 	// Kafka configuration
 	config := sarama.NewConfig()
 	// Set a matching Kafka version if needed. For example:
@@ -75,6 +78,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating consumer group client: %v", err)
 	}
+	log.Println("Set up consumer group")
 	defer func() {
 		if err := consumerGroup.Close(); err != nil {
 			log.Fatalf("Error closing consumer group: %v", err)
@@ -91,8 +95,8 @@ func main() {
 	}()
 
 	connString := os.Getenv("POSTGRES_URI")
-
 	DB, err := sql.Open("postgres", connString)
+
 	if err != nil {
 		log.Fatal("Could not connect to DB", err)
 	}

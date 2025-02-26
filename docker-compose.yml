@@ -42,37 +42,53 @@ services:
     networks:
       - url-dev-network
 
-  analytics-service-producer:
+  analytics-producer:
+    deploy:
+      replicas: 3
     build:
       dockerfile: producer.Dockerfile
       context: ./new_analytics_service
     depends_on:
       - kafka
-      - postgres
-    ports:
-      - "8002:8002"
+    #  - postgres
+
     networks:
       - url-dev-network
     volumes:
       - ./new_analytics_service:/app
     env_file:
       - new_analytics_service/.env.local
-    #command: ['/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', '--build.bin', '/app' ]
+    #command: ['/root/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', ]
 
-
-  postgres:
-    image: postgres:latest
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+  analytics-consumer:
+    deploy:
+      replicas: 3
+    build:
+      dockerfile: consumer.Dockerfile
+      context: ./new_analytics_service
+    depends_on:
+      - kafka
+      #- postgres
     networks:
       - url-dev-network
-    environment:
-      - POSTGRES_PASSWORD=admin101
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=analytics_db
+    env_file:
+      - new_analytics_service/.env.local
+    #command: ["/root/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", ]
+
+
+  #postgres:
+  #  image: postgres:latest
+  #  ports:
+  #    - "5432:5432"
+  #  volumes:
+  #    - postgres-data:/var/lib/postgresql/data
+  #    - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #  networks:
+  #   - url-dev-network
+  #  environment:
+  #    - POSTGRES_PASSWORD=admin101
+  #    - POSTGRES_USER=admin
+  #    - POSTGRES_DB=analytics_db
 
   zookeeper:
     image: 'bitnami/zookeeper:latest'
@@ -99,18 +115,6 @@ services:
 
     networks:
       - url-dev-network
-
-  analytics-service-consumer:
-    build:
-      dockerfile: consumer.Dockerfile
-      context: ./new_analytics_service
-    depends_on:
-      - kafka
-      - postgres
-    networks:
-      - url-dev-network
-    env_file:
-      - new_analytics_service/.env.local
 
 
 volumes:

@@ -47,6 +47,7 @@ k8s-configure:
 	kubectl create secret generic redis-secrets --from-env-file=./.env.redis
 	kubectl create secret generic docker-secrets --from-env-file=./.env.dockerhub
 	kubectl create secret generic kafka-secrets --from-env-file=./.env.kafka
+	kubectl create secret generic postgres-secrets --from-env-file=./.env.postgres
 
 
 k8s-clean-configure:
@@ -57,6 +58,7 @@ k8s-clean-configure:
 	kubectl delete secret redis-secrets
 	kubectl delete secret docker-secrets
 	kubectl delete secret kafka-secrets
+	kubectl delete secret postgres-secrets
 
 docker-hub-push:
 	sudo docker build --platform=linux/amd64 -t cooperw22/urls-service:latest ./urls_service
