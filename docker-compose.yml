@@ -22,41 +22,35 @@ services:
     expose:
       - "80"
 
-  #analytics-producer:
-  #  deploy:
-  #    replicas: 3
-  #  build:
-  #    dockerfile: producer.Dockerfile
-  #    context: ./new_analytics_service
-  #  depends_on:
-  #    kafka:
-  #      condition: service_healthy
-  #    postgres:
-  #      condition: service_started
-  #  networks:
-  #    - url-dev-network
-  #  volumes:
-  #    - ./new_analytics_service:/app
-  #  env_file:
-  #    - new_analytics_service/.env.local
-    #command: ['/root/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', ]
+  analytics-producer:
+    deploy:
+      replicas: 3
+    build:
+      dockerfile: producer.Dockerfile
+      context: ./new_analytics_service
+    depends_on:
+      - postgres
+    networks:
+      - url-dev-network
+    volumes:
+      - ./new_analytics_service:/app
+    env_file:
+      - new_analytics_service/.env.local
+    command: ['/root/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', ]
 
-  #analytics-consumer:
-  #  deploy:
-  #    replicas: 3
-  #  build:
-  #    dockerfile: consumer.Dockerfile
-  #    context: ./new_analytics_service
-  #  depends_on:
-  #    kafka:
-  #      condition: service_healthy
-  #    postgres:
-  #      condition: service_started
-  #  networks:
-  #    - url-dev-network
-  #  env_file:
-  #    - new_analytics_service/.env.local
-    #command: ["/root/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", ]
+  analytics-consumer:
+    deploy:
+      replicas: 3
+    build:
+      dockerfile: consumer.Dockerfile
+      context: ./new_analytics_service
+    depends_on:
+      - postgres
+    networks:
+      - url-dev-network
+    env_file:
+      - new_analytics_service/.env.local
+    command: ["/root/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", ]
 
   redis:
     image: redis:latest
@@ -99,36 +93,6 @@ services:
       - POSTGRES_PASSWORD=admin101
       - POSTGRES_USER=admin
       - POSTGRES_DB=analytics_db
-
-  #zookeeper:
-  #  image: 'bitnami/zookeeper:latest'
-  #  container_name: zookeeper
-  #  environment:
-  #    - ALLOW_ANONYMOUS_LOGIN=yes
-  #  networks:
-  #    - url-dev-network
-
-  #kafka:
-  #  image: 'bitnami/kafka:latest'
-  #  depends_on:
-  #    - zookeeper
-  #  environment:
-  #    KAFKA_BROKER_ID: 1
-  #    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # Set up a single internal listener only
-  #    KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092
-  #    KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
-  #    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT
-  #    KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-  #  healthcheck:
-  #    test: [ "CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list" ]
-  #    interval: 5s
-  #    timeout: 10s
-  #    retries: 10
-
-  #  networks:
-  #    - url-dev-network
-
 
 volumes:
   mongodb-data:
