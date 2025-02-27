@@ -1,8 +1,6 @@
 services:
   mongodb:
     image: mongo:6.0
-    ports:
-      - "27017:27017"
     networks:
       - url-dev-network
     volumes:
@@ -24,6 +22,42 @@ services:
     expose:
       - "80"
 
+  #analytics-producer:
+  #  deploy:
+  #    replicas: 3
+  #  build:
+  #    dockerfile: producer.Dockerfile
+  #    context: ./new_analytics_service
+  #  depends_on:
+  #    kafka:
+  #      condition: service_healthy
+  #    postgres:
+  #      condition: service_started
+  #  networks:
+  #    - url-dev-network
+  #  volumes:
+  #    - ./new_analytics_service:/app
+  #  env_file:
+  #    - new_analytics_service/.env.local
+    #command: ['/root/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', ]
+
+  #analytics-consumer:
+  #  deploy:
+  #    replicas: 3
+  #  build:
+  #    dockerfile: consumer.Dockerfile
+  #    context: ./new_analytics_service
+  #  depends_on:
+  #    kafka:
+  #      condition: service_healthy
+  #    postgres:
+  #      condition: service_started
+  #  networks:
+  #    - url-dev-network
+  #  env_file:
+  #    - new_analytics_service/.env.local
+    #command: ["/root/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", ]
+
   redis:
     image: redis:latest
     restart: always
@@ -32,89 +66,68 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: nginx_proxy
     ports:
-      - "8000:8000"
+      - "443:443"
+      - "80:80"
     volumes:
-      - ./nginx_dev/nginx.conf:/etc/nginx_dev/nginx.conf:ro  # Mount custom NGINX config
-    depends_on:
-      - urls-service
+      - ./nginx_dev/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount custom NGINX config
+      - ./ssl:/etc/nginx/ssl
     networks:
       - url-dev-network
-
-  analytics-producer:
-    deploy:
-      replicas: 3
-    build:
-      dockerfile: producer.Dockerfile
-      context: ./new_analytics_service
     depends_on:
-      - kafka
-    #  - postgres
+      envoy:
+        condition: service_started
 
-    networks:
-      - url-dev-network
+
+  envoy:
+    image: envoyproxy/envoy:v1.27.0
     volumes:
-      - ./new_analytics_service:/app
-    env_file:
-      - new_analytics_service/.env.local
-    #command: ['/root/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', ]
-
-  analytics-consumer:
-    deploy:
-      replicas: 3
-    build:
-      dockerfile: consumer.Dockerfile
-      context: ./new_analytics_service
-    depends_on:
-      - kafka
-      #- postgres
+      - ./envoy_dev/envoy.yaml:/etc/envoy/envoy.yaml
     networks:
       - url-dev-network
-    env_file:
-      - new_analytics_service/.env.local
-    #command: ["/root/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", ]
+    ports:
+      - "10000:10000"
 
+  postgres:
+    image: postgres:latest
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+     - url-dev-network
+    environment:
+      - POSTGRES_PASSWORD=admin101
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=analytics_db
 
-  #postgres:
-  #  image: postgres:latest
-  #  ports:
-  #    - "5432:5432"
-  #  volumes:
-  #    - postgres-data:/var/lib/postgresql/data
-  #    - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-  #  networks:
-  #   - url-dev-network
+  #zookeeper:
+  #  image: 'bitnami/zookeeper:latest'
+  #  container_name: zookeeper
   #  environment:
-  #    - POSTGRES_PASSWORD=admin101
-  #    - POSTGRES_USER=admin
-  #    - POSTGRES_DB=analytics_db
+  #    - ALLOW_ANONYMOUS_LOGIN=yes
+  #  networks:
+  #    - url-dev-network
 
-  zookeeper:
-    image: 'bitnami/zookeeper:latest'
-    container_name: zookeeper
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    ports:
-      - '2181:2181'
-    networks:
-      - url-dev-network
-
-  kafka:
-    image: 'bitnami/kafka:latest'
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #kafka:
+  #  image: 'bitnami/kafka:latest'
+  #  depends_on:
+  #    - zookeeper
+  #  environment:
+  #    KAFKA_BROKER_ID: 1
+  #    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       # Set up a single internal listener only
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+  #    KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092
+  #    KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+  #    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT
+  #    KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+  #  healthcheck:
+  #    test: [ "CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list" ]
+  #    interval: 5s
+  #    timeout: 10s
+  #    retries: 10
 
-    networks:
-      - url-dev-network
+  #  networks:
+  #    - url-dev-network
 
 
 volumes:

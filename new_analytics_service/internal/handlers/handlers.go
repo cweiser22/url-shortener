@@ -9,6 +9,7 @@ import (
 	"new_analytics_service/internal/service"
 )
 
+// used for dependency injection
 type AnalyticsHandler struct {
 	Producer         sarama.SyncProducer
 	AnalyticsService service.AnalyticsService

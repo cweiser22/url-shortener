@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, APIRouter
 from fastapi.responses import RedirectResponse, JSONResponse
 from app import database, utils, schemas
 from app.cache import get_cache
@@ -16,14 +16,17 @@ app.add_event_handler("shutdown", database.close_connection)
 
 log.info(f"Node: {settings.node_name}")
 
+router = APIRouter()
 
-@app.get("/health")
+
+@router.get("/health")
 async def health_check():
     return {"status": "ok"}
 
 
-@app.post("/urls/", )
+@router.post("/mappings/", )
 async def create_url_mapping(data: schemas.CreateURLMappingRequest, db: AsyncIOMotorDatabase = Depends(database.get_database)):
+    print("making url")
     try:
         url_mapping_document = {
             "long_url": data.long_url,
@@ -43,7 +46,7 @@ async def create_url_mapping(data: schemas.CreateURLMappingRequest, db: AsyncIOM
         return JSONResponse(content={"message": "Something went wrong"}, status_code=400)
 
 
-@app.get("/{code}")
+@router.get("/{code}/redirect")
 async def redirect_to_long_url(code: str, db: AsyncIOMotorDatabase = Depends(database.get_database),
                                redis_client=Depends(get_cache)):
 
@@ -90,4 +93,4 @@ async def redirect_to_long_url(code: str, db: AsyncIOMotorDatabase = Depends(dat
                                 },
                                 status_code=301,
                                 )
-
+app.include_router(router, prefix="/urls/api/v1")
