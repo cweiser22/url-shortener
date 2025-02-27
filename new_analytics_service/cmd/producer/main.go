@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/IBM/sarama"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -57,14 +58,17 @@ func main() {
 
 	repo := repository.NewAnalyticsRepository(DB)
 
+	// set up DI
 	ah := handlers.AnalyticsHandler{
 		Producer:         app.KafkaProducer,
 		AnalyticsService: service.NewAnalyticsService(repo),
 	}
 
-	router.HandleFunc("GET /{shortCode}/stats", ah.UrlStatsHandler)
-	router.HandleFunc("GET /{shortCode}", ah.UrlVisitHandler)
-	router.HandleFunc("GET /", ah.HealthCheckHandler)
+	// TODO: maybe use Chi because this is a bit messy
+	apiPrefix := "/analytics/api/v1"
+	router.HandleFunc(fmt.Sprintf("GET %s/{shortCode}/stats", apiPrefix), ah.UrlStatsHandler)
+	router.HandleFunc(fmt.Sprintf("GET %s/{shortCode}", apiPrefix), ah.UrlVisitHandler)
+	router.HandleFunc(fmt.Sprintf("GET %s/", apiPrefix), ah.HealthCheckHandler)
 
-	log.Fatal(http.ListenAndServe(":8002", router))
+	log.Fatal(http.ListenAndServe(":80", router))
 }

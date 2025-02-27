@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 
 def get_database() -> AsyncIOMotorDatabase:
+    print("getting db")
     return async_db
 
 
