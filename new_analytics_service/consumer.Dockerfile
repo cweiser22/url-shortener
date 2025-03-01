@@ -1,5 +1,5 @@
 # Use the official Golang image as a build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.23-alpine
 
 # Set environment variables for building
 ENV CGO_ENABLED=0 \
@@ -23,18 +23,12 @@ COPY . .
 RUN go build -o main ./cmd/consumer/main.go
 
 
-# Use a minimal runtime image for the final container
-FROM alpine:latest
-
-# Set the working directory
-WORKDIR /root/
-
 RUN apk add curl
-RUN curl -sSfL https://raw.githubusercontent.com/air-verse/air/master/install.sh | sh -s
+RUN curl -sSfL https://goblin.run/github.com/air-verse/air | sh
 
 
-# Copy the compiled binary from the builder stage
-COPY --from=builder /app/main .
+# Expose port 8002
+EXPOSE 8002
 
 # Run the application
 CMD ["./main"]

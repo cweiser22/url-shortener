@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/IBM/sarama"
 	"log"
 	"net/http"
 	"new_analytics_service/internal/models"
@@ -11,7 +10,6 @@ import (
 
 // used for dependency injection
 type AnalyticsHandler struct {
-	Producer         sarama.SyncProducer
 	AnalyticsService service.AnalyticsService
 }
 
@@ -34,12 +32,7 @@ func (h *AnalyticsHandler) UrlVisitHandler(w http.ResponseWriter, r *http.Reques
 
 	// Send Kafka message asynchronously to avoid blocking response
 	go func() {
-		msg := &sarama.ProducerMessage{Topic: "visit", Value: sarama.StringEncoder(shortCode)}
-		_, _, err := h.Producer.SendMessage(msg)
-		if err != nil {
-			log.Println("Kafka error:", err)
-		}
-		log.Println("Sent message:", shortCode)
+		log.Println("Placeholder message send:", shortCode)
 	}()
 }
 

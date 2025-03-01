@@ -3,50 +3,21 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/IBM/sarama"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-	app2 "new_analytics_service/internal/app"
 	"new_analytics_service/internal/handlers"
 	"new_analytics_service/internal/repository"
 	"new_analytics_service/internal/service"
 	"os"
-	"strings"
 )
-
-// NewProducer initializes a new Kafka producer
-func NewProducer(brokers []string) (sarama.SyncProducer, error) {
-	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Return.Successes = true
-
-	// Create Kafka producer
-	producer, err := sarama.NewSyncProducer(brokers, config)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Println("Kafka producer initialized")
-	return producer, nil
-}
 
 func main() {
 	godotenv.Load(".env.local")
 	router := http.NewServeMux()
 
-	brokerList := os.Getenv("KAFKA_BROKER_URLS")
-	brokers := strings.Split(brokerList, ",")
-	producer, err := NewProducer(brokers)
-
-	if err != nil {
-		log.Fatal("Failed to connect to Kafka with URL %s, %s", brokerList, err)
-	}
-
-	app := app2.ProducerApp{
-		KafkaProducer: producer,
-	}
+	//app := app2.ProducerApp{}
 
 	connString := os.Getenv("POSTGRES_URI")
 	log.Println(connString)
@@ -60,7 +31,6 @@ func main() {
 
 	// set up DI
 	ah := handlers.AnalyticsHandler{
-		Producer:         app.KafkaProducer,
 		AnalyticsService: service.NewAnalyticsService(repo),
 	}
 

@@ -24,23 +24,25 @@ static_resources:
                       routes:
                         - match: { prefix: "/urls" }
                           route: { cluster: urls_service_cluster }
+                        - match: {prefix: "/analytics" }
+                          route: { cluster: analytics_producer_cluster }
                 http_filters:
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
   clusters:
-    #- name: analytics_producer_cluster
-    #  connect_timeout: 5s
-    #  load_assignment:
-    #    cluster_name: analytics_producer_cluster
-    #    endpoints:
-    #      - lb_endpoints:
-    #          - endpoint:
-    #              address:
-    #                socket_address: { address: analytics-producer, port_value: 80 }
-    #  type: STRICT_DNS
-    #  lb_policy: ROUND_ROBIN
+    - name: analytics_producer_cluster
+      connect_timeout: 5s
+      load_assignment:
+        cluster_name: analytics_producer_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address: { address: analytics-producer, port_value: 80 }
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
 
     - name: urls_service_cluster
       connect_timeout: 5s

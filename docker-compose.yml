@@ -36,7 +36,7 @@ services:
       - ./new_analytics_service:/app
     env_file:
       - new_analytics_service/.env.local
-    command: ['/root/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', ]
+    command: ['/usr/local/bin/air', '--build.cmd', 'go build -o main /app/cmd/producer/main.go', "--build.bin", "/app/main" ]
 
   analytics-consumer:
     deploy:
@@ -50,7 +50,7 @@ services:
       - url-dev-network
     env_file:
       - new_analytics_service/.env.local
-    command: ["/root/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", ]
+    command: ["/usr/local/bin/air", "--build.cmd", "go build -o main ./cmd/consumer/main.go", "--build.bin", "/app/main" ]
 
   redis:
     image: redis:latest
