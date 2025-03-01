@@ -30,6 +30,7 @@ services:
       context: ./new_analytics_service
     depends_on:
       - postgres
+      - redis
     networks:
       - url-dev-network
     volumes:
@@ -46,6 +47,7 @@ services:
       context: ./new_analytics_service
     depends_on:
       - postgres
+      - redis
     networks:
       - url-dev-network
     env_file:

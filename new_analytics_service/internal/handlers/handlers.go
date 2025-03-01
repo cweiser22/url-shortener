@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"new_analytics_service/internal/models"
@@ -11,10 +13,28 @@ import (
 // used for dependency injection
 type AnalyticsHandler struct {
 	AnalyticsService service.AnalyticsService
+	RedisClient      *redis.Client
 }
 
 func (h *AnalyticsHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(models.HealthCheckResponse{Status: "ok"})
+}
+
+// Function to publish a visit event
+func publishVisit(ctx context.Context, rdb *redis.Client, shortCode string) error {
+	msgID, err := rdb.XAdd(ctx, &redis.XAddArgs{
+		Stream: "visits",
+		Values: map[string]interface{}{
+			"short_code": shortCode,
+		},
+	}).Result()
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Visit published for %s and id %s\n", shortCode, msgID)
+	return nil
 }
 
 // warning: even though this is a GET handler, it is NOT idempotent
@@ -32,7 +52,12 @@ func (h *AnalyticsHandler) UrlVisitHandler(w http.ResponseWriter, r *http.Reques
 
 	// Send Kafka message asynchronously to avoid blocking response
 	go func() {
-		log.Println("Placeholder message send:", shortCode)
+		ctx := context.Background()
+
+		err := publishVisit(ctx, h.RedisClient, shortCode)
+		if err != nil {
+			log.Printf("Error publishing visit: %v", err)
+		}
 	}()
 }
 
