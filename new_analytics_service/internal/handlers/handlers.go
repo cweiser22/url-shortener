@@ -50,6 +50,8 @@ func (h *AnalyticsHandler) UrlVisitHandler(w http.ResponseWriter, r *http.Reques
 		f.Flush() // Flush response to client
 	}
 
+	log.Printf("Visiting %s\n", shortCode)
+
 	// Send Kafka message asynchronously to avoid blocking response
 	go func() {
 		ctx := context.Background()
@@ -69,5 +71,6 @@ func (h *AnalyticsHandler) UrlStatsHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("Stats for %s: %v\n", shortCode, stats)
 	json.NewEncoder(w).Encode(stats)
 }

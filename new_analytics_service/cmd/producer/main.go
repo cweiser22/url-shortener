@@ -43,7 +43,7 @@ func main() {
 	// TODO: maybe use Chi because this is a bit messy
 	apiPrefix := "/analytics/api/v1"
 	router.HandleFunc(fmt.Sprintf("GET %s/{shortCode}/stats", apiPrefix), ah.UrlStatsHandler)
-	router.HandleFunc(fmt.Sprintf("GET %s/{shortCode}", apiPrefix), ah.UrlVisitHandler)
+	router.HandleFunc(fmt.Sprintf("PATCH %s/{shortCode}/visit/", apiPrefix), ah.UrlVisitHandler)
 	router.HandleFunc(fmt.Sprintf("GET %s/", apiPrefix), ah.HealthCheckHandler)
 
 	log.Fatal(http.ListenAndServe(":80", router))
